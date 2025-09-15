@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Sales - Zackie Pharmacy</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <!-- Header + Navigation -->
+    <header class="main-header">
+        <h1>Zackie Pharmacy</h1>
+        <nav class="main-nav">
+            <a href="/dashboard">Dashboard</a>
+            <a href="/add_product">Add Product</a>
+            <a href="/sales">Sales</a>
+            <a href="/logout">Logout</a>
+        </nav>
+    </header>
+
+    <!-- Main content -->
+    <main style="padding:30px;">
+        <h2>Sales Records</h2>
+        <table>
+            <tr>
+                <th>Product Name</th>
+                <th>Quantity Sold</th>
+                <th>Price</th>
+                <th>Total</th>
+            </tr>
+            <!-- Example data -->
+            <tr>
+                <td>Paracetamol</td>
+                <td>20</td>
+                <td>2000</td>
+                <td>40000</td>
+            </tr>
+            <tr>
+                <td>Amoxicillin</td>
+                <td>10</td>
+                <td>5000</td>
+                <td>50000</td>
+            </tr>
+        </table>
+    </main>
+</body>
+</html>
