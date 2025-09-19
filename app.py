@@ -132,6 +132,52 @@ def products():
 
 # ============================
 # Routes - Sales, Customers, Reports etc.
+from database import add_sale, add_customer
+
+@app.route('/sales', methods=['GET', 'POST'])
+@login_required(role='cashier')  # Only cashier can record sales
+def sales():
+    conn = get_db_connection()
+    c = conn.cursor()
+
+    # Fetch products
+    c.execute("SELECT id, name, price, quantity FROM products")
+    products_list = c.fetchall()
+
+    # Fetch customers
+    c.execute("SELECT id, name FROM customers")
+    customers_list = c.fetchall()
+    conn.close()
+
+    if request.method == 'POST':
+        customer_id = int(request.form['customer_id'])
+        payment_method = request.form['payment_method']
+        discount = float(request.form.get('discount', 0))
+        tax = float(request.form.get('tax', 0))
+
+        # Collect products sold
+        sold_products = []
+        for p in products_list:
+            qty = int(request.form.get(f'quantity_{p[0]}', 0))
+            if qty > 0:
+                sold_products.append({
+                    'product_id': p[0],
+                    'quantity': qty,
+                    'price': p[2]
+                })
+
+        if not sold_products:
+            flash("Tafadhali chagua angalau product moja!")
+            return redirect(url_for('sales'))
+
+        total_amount = sum(p['quantity'] * p['price'] for p in sold_products)
+        total_amount = total_amount - discount + tax
+
+        add_sale(customer_id, total_amount, payment_method, discount, tax, products=sold_products)
+        flash("Sale imefanikiwa kurekodiwa!")
+        return redirect(url_for('sales'))
+
+    return render_template('sales.html', products=products_list, customers=customers_list)
 # ============================
 # Tutayaongeza baada ya products route
 
