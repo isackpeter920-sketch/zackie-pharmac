@@ -1,27 +1,17 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Login - Zackie Pharmacy</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
-</head>
-<body>
-    <div class="login-container">
-        <div class="login-box">
-            <h2>Welcome Back!</h2>
-            <p class="sub-title">Login to access your dashboard</p>
-            <form method="POST" action="/login">
-                <div class="input-group">
-                    <input type="text" name="username" placeholder="Username" required>
-                </div>
-                <div class="input-group">
-                    <input type="password" name="password" placeholder="Password" required>
-                </div>
-                <button type="submit">Login</button>
-            </form>
-            <p class="signup-text">Don't have an account? <a href="/register">Sign Up</a></p>
-        </div>
+{% extends "base.html" %}
+{% block title %}Login{% endblock %}
+{% block content %}
+<h2>Login</h2>
+<form method="POST">
+    <div class="mb-3">
+        <label>Username</label>
+        <input type="text" name="username" class="form-control" required>
     </div>
-</body>
-</html>
+    <div class="mb-3">
+        <label>Password</label>
+        <input type="password" name="password" class="form-control" required>
+    </div>
+    <button type="submit" class="btn btn-primary">Login</button>
+</form>
+<p class="mt-2">Hakuna account? <a href="{{ url_for('register') }}">Register hapa</a></p>
+{% endblock %}
