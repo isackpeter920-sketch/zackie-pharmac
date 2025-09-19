@@ -1,14 +1,13 @@
-# database.py
 import sqlite3
 from datetime import datetime
 
 DB_NAME = "zackie_pharma.db"
 
+# ====== Database Connection ======
 def get_db_connection():
-    conn = sqlite3.connect(DB_NAME)
-    conn.row_factory = sqlite3.Row
-    return conn
+    return sqlite3.connect(DB_NAME)
 
+# ====== Create Tables ======
 def create_tables():
     conn = get_db_connection()
     c = conn.cursor()
@@ -19,15 +18,7 @@ def create_tables():
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         username TEXT UNIQUE NOT NULL,
         password TEXT NOT NULL,
-        role TEXT DEFAULT 'staff'
-    )
-    ''')
-
-    # Categories table
-    c.execute('''
-    CREATE TABLE IF NOT EXISTS categories (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT UNIQUE NOT NULL
+        role TEXT DEFAULT 'cashier'
     )
     ''')
 
@@ -38,8 +29,7 @@ def create_tables():
         name TEXT NOT NULL,
         category_id INTEGER,
         price REAL NOT NULL,
-        quantity INTEGER NOT NULL,
-        FOREIGN KEY (category_id) REFERENCES categories(id)
+        quantity INTEGER NOT NULL
     )
     ''')
 
@@ -56,40 +46,17 @@ def create_tables():
     )
     ''')
 
-    # Suppliers table
-    c.execute('''
-    CREATE TABLE IF NOT EXISTS suppliers (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT NOT NULL,
-        contact TEXT,
-        address TEXT
-    )
-    ''')
-
-    # Inventory table
-    c.execute('''
-    CREATE TABLE IF NOT EXISTS inventory (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        product_id INTEGER NOT NULL,
-        batch_no TEXT,
-        quantity_in INTEGER DEFAULT 0,
-        quantity_out INTEGER DEFAULT 0,
-        expiry_date TEXT,
-        FOREIGN KEY (product_id) REFERENCES products(id)
-    )
-    ''')
-
     # Sales table
     c.execute('''
     CREATE TABLE IF NOT EXISTS sales (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         customer_id INTEGER,
         total_amount REAL NOT NULL,
-        payment_method TEXT,
+        payment_method TEXT NOT NULL,
         discount REAL DEFAULT 0,
         tax REAL DEFAULT 0,
-        sale_date TEXT NOT NULL,
-        FOREIGN KEY (customer_id) REFERENCES customers(id)
+        sale_date TEXT DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY(customer_id) REFERENCES customers(id)
     )
     ''')
 
@@ -97,12 +64,12 @@ def create_tables():
     c.execute('''
     CREATE TABLE IF NOT EXISTS sales_details (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        sale_id INTEGER NOT NULL,
-        product_id INTEGER NOT NULL,
-        quantity INTEGER NOT NULL,
-        price REAL NOT NULL,
-        FOREIGN KEY (sale_id) REFERENCES sales(id),
-        FOREIGN KEY (product_id) REFERENCES products(id)
+        sale_id INTEGER,
+        product_id INTEGER,
+        quantity INTEGER,
+        price REAL,
+        FOREIGN KEY(sale_id) REFERENCES sales(id),
+        FOREIGN KEY(product_id) REFERENCES products(id)
     )
     ''')
 
@@ -110,60 +77,21 @@ def create_tables():
     c.execute('''
     CREATE TABLE IF NOT EXISTS prescriptions (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        customer_id INTEGER NOT NULL,
+        customer_id INTEGER,
         doctor_name TEXT,
-        product_id INTEGER NOT NULL,
-        quantity INTEGER NOT NULL,
-        date_prescribed TEXT NOT NULL,
+        product_id INTEGER,
+        quantity INTEGER,
+        date_prescribed TEXT,
         instructions TEXT,
-        FOREIGN KEY (customer_id) REFERENCES customers(id),
-        FOREIGN KEY (product_id) REFERENCES products(id)
-    )
-    ''')
-
-    # Audit logs table
-    c.execute('''
-    CREATE TABLE IF NOT EXISTS audit_logs (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        action TEXT NOT NULL,
-        table_name TEXT NOT NULL,
-        record_id INTEGER,
-        timestamp TEXT NOT NULL
-    )
-    ''')
-
-    # Notifications table
-    c.execute('''
-    CREATE TABLE IF NOT EXISTS notifications (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        type TEXT NOT NULL,
-        message TEXT NOT NULL,
-        recipient_id INTEGER,
-        status TEXT DEFAULT 'pending',
-        date_created TEXT NOT NULL
+        FOREIGN KEY(customer_id) REFERENCES customers(id),
+        FOREIGN KEY(product_id) REFERENCES products(id)
     )
     ''')
 
     conn.commit()
     conn.close()
 
-
-# =========================
-# Helper functions ya inserts
-# =========================
-
-def log_action(action, table_name, record_id=None):
-    conn = get_db_connection()
-    c = conn.cursor()
-    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    c.execute('''
-    INSERT INTO audit_logs (action, table_name, record_id, timestamp)
-    VALUES (?, ?, ?, ?)
-    ''', (action, table_name, record_id, timestamp))
-    conn.commit()
-    conn.close()
-
-
+# ====== CRUD Functions ======
 def add_product(name, category_id, price, quantity):
     conn = get_db_connection()
     c = conn.cursor()
@@ -174,7 +102,7 @@ def add_product(name, category_id, price, quantity):
     conn.commit()
     product_id = c.lastrowid
     conn.close()
-    log_action("INSERT", "products", product_id)
+    return product_id
 
 
 def add_customer(name, phone=None, email=None, address=None, dob=None, medical_history=None):
@@ -187,7 +115,7 @@ def add_customer(name, phone=None, email=None, address=None, dob=None, medical_h
     conn.commit()
     customer_id = c.lastrowid
     conn.close()
-    log_action("INSERT", "customers", customer_id)
+    return customer_id
 
 
 def add_sale(customer_id, total_amount, payment_method, discount=0, tax=0, sale_date=None, products=[]):
@@ -203,14 +131,13 @@ def add_sale(customer_id, total_amount, payment_method, discount=0, tax=0, sale_
 
     # Insert sales details
     for p in products:
-        # p = {'product_id':id, 'quantity':q, 'price':price}
         c.execute('''
         INSERT INTO sales_details (sale_id, product_id, quantity, price)
         VALUES (?, ?, ?, ?)
         ''', (sale_id, p['product_id'], p['quantity'], p['price']))
     conn.commit()
     conn.close()
-    log_action("INSERT", "sales", sale_id)
+    return sale_id
 
 
 def add_prescription(customer_id, doctor_name, product_id, quantity, date_prescribed=None, instructions=None):
@@ -225,4 +152,9 @@ def add_prescription(customer_id, doctor_name, product_id, quantity, date_prescr
     conn.commit()
     prescription_id = c.lastrowid
     conn.close()
-    log_action("INSERT", "prescriptions", prescription_id)
+    return prescription_id
+
+
+if __name__ == "__main__":
+    create_tables()
+    print("✅ Database setup complete! Tables and CRUD functions ready.")
