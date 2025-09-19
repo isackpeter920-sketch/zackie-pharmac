@@ -1,46 +1,54 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Sales - Zackie Pharmacy</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-</head>
-<body>
-    <!-- Header + Navigation -->
-    <header class="main-header">
-        <h1>Zackie Pharmacy</h1>
-        <nav class="main-nav">
-            <a href="/dashboard">Dashboard</a>
-            <a href="/add_product">Add Product</a>
-            <a href="/sales">Sales</a>
-            <a href="/logout">Logout</a>
-        </nav>
-    </header>
+{% extends "base.html" %}
+{% block title %}Sales{% endblock %}
+{% block content %}
+<h2>Record Sale</h2>
+<form method="POST">
+    <div class="mb-3">
+        <label>Customer</label>
+        <select name="customer_id" class="form-control" required>
+            {% for c in customers %}
+                <option value="{{ c[0] }}">{{ c[1] }}</option>
+            {% endfor %}
+        </select>
+    </div>
 
-    <!-- Main content -->
-    <main style="padding:30px;">
-        <h2>Sales Records</h2>
-        <table>
+    <div class="mb-3">
+        <label>Payment Method</label>
+        <select name="payment_method" class="form-control">
+            <option value="Cash">Cash</option>
+            <option value="Card">Card</option>
+        </select>
+    </div>
+
+    <table class="table table-bordered">
+        <thead>
             <tr>
-                <th>Product Name</th>
-                <th>Quantity Sold</th>
-                <th>Price</th>
-                <th>Total</th>
+                <th>Product</th><th>Price</th><th>Available Qty</th><th>Quantity to Sell</th>
             </tr>
-            <!-- Example data -->
+        </thead>
+        <tbody>
+            {% for p in products %}
             <tr>
-                <td>Paracetamol</td>
-                <td>20</td>
-                <td>2000</td>
-                <td>40000</td>
+                <td>{{ p[1] }}</td>
+                <td>{{ p[2] }}</td>
+                <td>{{ p[3] }}</td>
+                <td><input type="number" name="quantity_{{ p[0] }}" min="0" max="{{ p[3] }}" class="form-control" value="0"></td>
             </tr>
-            <tr>
-                <td>Amoxicillin</td>
-                <td>10</td>
-                <td>5000</td>
-                <td>50000</td>
-            </tr>
-        </table>
-    </main>
-</body>
-</html>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="row mb-3">
+        <div class="col">
+            <label>Discount</label>
+            <input type="number" name="discount" step="0.01" class="form-control" value="0">
+        </div>
+        <div class="col">
+            <label>Tax</label>
+            <input type="number" name="tax" step="0.01" class="form-control" value="0">
+        </div>
+    </div>
+
+    <button type="submit" class="btn btn-success">Record Sale</button>
+</form>
+{% endblock %}
