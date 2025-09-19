@@ -1,41 +1,11 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Dashboard - Zackie Pharmacy</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-</head>
-<body>
-    <!-- Header + Navigation -->
-    <header class="main-header">
-        <h1>Zackie Pharmacy</h1>
-        <nav class="main-nav">
-            <a href="/dashboard">Dashboard</a>
-            <a href="/add_product">Add Product</a>
-            <a href="/sales">Sales</a>
-            <a href="/logout">Logout</a>
-        </nav>
-    </header>
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<h2>Welcome, {{ session.get('username') }}!</h2>
+<p>Role: {{ session.get('role') }}</p>
 
-    <!-- Main content -->
-    <main style="padding:30px;">
-        <h2>Welcome, {{ user }}</h2>
-
-        <!-- Dashboard Cards -->
-        <div class="dashboard-grid">
-            <div class="card">
-                <h3>Total Products</h3>
-                <p>120</p>
-            </div>
-            <div class="card">
-                <h3>Total Sales</h3>
-                <p>85</p>
-            </div>
-            <div class="card">
-                <h3>Revenue</h3>
-                <p>TZS 450,000</p>
-            </div>
-        </div>
-    </main>
-</body>
-</html>
+<div class="mt-4">
+    <a href="{{ url_for('products') }}" class="btn btn-primary">Manage Products</a>
+    <!-- Baadaye: Sales, Reports, Users -->
+</div>
+{% endblock %}
