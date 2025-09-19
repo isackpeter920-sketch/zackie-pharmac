@@ -132,6 +132,37 @@ def products():
 
 # ============================
 # Routes - Sales, Customers, Reports etc.
+@app.route('/reports', methods=['GET', 'POST'])
+@login_required(role='admin')  # only admin can access
+def reports():
+    conn = get_db_connection()
+    c = conn.cursor()
+
+    # Optional: filter by date range
+    start_date = request.form.get('start_date') if request.method == 'POST' else None
+    end_date = request.form.get('end_date') if request.method == 'POST' else None
+
+    query = "SELECT SUM(total_amount), COUNT(*), SUM(sd.quantity) " \
+            "FROM sales s JOIN sales_details sd ON s.id = sd.sale_id"
+    params = []
+    if start_date and end_date:
+        query += " WHERE s.sale_date BETWEEN ? AND ?"
+        params = [start_date, end_date]
+
+    c.execute(query, params)
+    result = c.fetchone()
+    conn.close()
+
+    total_sales = result[0] if result[0] else 0
+    total_sales_count = result[1] if result[1] else 0
+    total_products_sold = result[2] if result[2] else 0
+
+    return render_template('reports.html',
+                           total_sales=total_sales,
+                           total_sales_count=total_sales_count,
+                           total_products_sold=total_products_sold,
+                           start_date=start_date,
+                           end_date=end_date)
 from database import add_sale, add_customer
 
 @app.route('/sales', methods=['GET', 'POST'])
