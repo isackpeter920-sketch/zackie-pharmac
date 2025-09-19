@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Reports{% endblock %}
+
+{% block content %}
+<h2>Sales Report</h2>
+
+<form method="POST" class="mb-4">
+    <div class="row">
+        <div class="col">
+            <label>Start Date</label>
+            <input type="date" name="start_date" class="form-control" value="{{ start_date or '' }}">
+        </div>
+        <div class="col">
+            <label>End Date</label>
+            <input type="date" name="end_date" class="form-control" value="{{ end_date or '' }}">
+        </div>
+    </div>
+    <button type="submit" class="btn btn-primary mt-3">Filter</button>
+</form>
+
+<div class="card mt-3">
+    <div class="card-body">
+        <h5 class="card-title">Summary</h5>
+        <p><strong>Total Sales:</strong> {{ total_sales }}</p>
+        <p><strong>Number of Sales:</strong> {{ total_sales_count }}</p>
+        <p><strong>Total Products Sold:</strong> {{ total_products_sold }}</p>
+    </div>
+</div>
+{% endblock %}
